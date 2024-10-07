@@ -21,6 +21,7 @@ const {
   STATUS_FORBIDDEN,
 } = require("../constants/status-codes");
 const { makeStringLowercase } = require("../utils/string-modifier");
+const { consumer, producer } = require("../../config/kafka");
 
 const secretKey = process.env.JWT_SECRET || "SOME_VERY_STRONG_SECRET_KEY";
 
@@ -254,4 +255,30 @@ const logout = async (req, res, next) => {
   }
 };
 
-module.exports = { login, register, logout, refreshToken };
+const requestForMerchant = async (req, res, next) => {
+  try {
+    if (!req.user && req.user !== "user") {
+      const error = new Error("User not valid!");
+      error.name = VALIDATION_ERROR;
+      error.status = STATUS_BAD_REQUEST;
+      throw error;
+    }
+
+    // TODO: send message to dashboard service for merchant maker
+
+    await producer.connect();
+    await producer.send({
+      topic: "make_merchant",
+      messages: [{ value: req.user }],
+    });
+    await producer.disconnect();
+
+    res
+      .status(STATUS_OK)
+      .json({ msg: "requested for merchant", status: STATUS_OK });
+  } catch (e) {
+    next(e);
+  }
+};
+
+module.exports = { login, register, logout, refreshToken, requestForMerchant };
