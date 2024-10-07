@@ -1,15 +1,16 @@
-const { Kafka } = require('kafkajs');
+const { Kafka } = require("kafkajs");
 
-
-const kafka = new Kafka({
-  clientId: 'merchant-maker',
-  brokers: ['localhost:9092'],
+const kafkaCon = new Kafka({
+  clientId: "merchant-maker",
+  brokers: ["localhost:9092"],
 });
 
+const producer = kafkaCon.producer();
 
-const producer = kafka.producer();
+// const consumer = kafka.consumer({ groupId: 'merchant-group' });
 
-
-const consumer = kafka.consumer({ groupId: 'merchant-group' });
-
-module.exports = { producer, consumer };
+module.exports = {
+  producer,
+  // consumer,
+  kafkaCon,
+};

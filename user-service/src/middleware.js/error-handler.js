@@ -3,7 +3,7 @@ const { STATUS_BAD_REQUEST, STATUS_INTERNAL_SERVER_ERROR, STATUS_NOT_FOUND, STAT
 const logger = require("../utils/logger");
 
 const errorHandler = (err, req, res, next) => {
-  console.error(err.stack); // Log the error stack
+  // console.error(err.stack); // Log the error stack
   logger.error(`Status: ${STATUS_BAD_REQUEST}, Message: ${err.message}\n Stack: ${err.stack}\n`);
 
   if (err.name === VALIDATION_ERROR) {

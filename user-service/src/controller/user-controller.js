@@ -63,7 +63,7 @@ const login = async (req, res, next) => {
 
     let user = await User.findOne({
       where: {
-        [Op.or]: [{ email: email }, { username: username }],
+       [Op.or]: [{ email: email }, { username: username }],
       },
     });
 
@@ -199,8 +199,10 @@ const refreshToken = async (req, res, next) => {
       throw error;
     }
 
-    const refreshTokenFromBlackList = await BlacklistedToken.findOne({ token });
-
+    const refreshTokenFromBlackList = await BlacklistedToken.findOne({
+      where: { token },
+    });
+    console.log(refreshTokenFromBlackList, "refresh token form db");
     if (refreshTokenFromBlackList) {
       const error = new Error("User is not authorized!");
       error.name = FORBIDDEN_ERROR;
@@ -225,9 +227,13 @@ const refreshToken = async (req, res, next) => {
     const access_token = `Bearer ${generateToken(decoded)}`;
     const refresh_token = generateToken(decoded, "refresh");
 
-    await RefreshToken.updateOne(
-      { user_id: decoded.id },
-      { user_id: decoded.id, refresh_token }
+    await RefreshToken.update(
+      { token: refreshToken },
+      {
+        where: {
+          userId: decoded.userId,
+        },
+      }
     );
 
     res.cookie("refresh_token", refresh_token, {
@@ -265,12 +271,15 @@ const requestForMerchant = async (req, res, next) => {
     }
 
     // TODO: send message to dashboard service for merchant maker
+    const user = req.user;
+    // console.log("is user", user)
 
     await producer.connect();
-    await producer.send({
-      topic: "make_merchant",
-      messages: [{ value: req.user }],
+    const a = await producer.send({
+      topic: "make_merchant", 
+      messages: [{ value: user.userId }],
     });
+    console.log("what is the status", a)
     await producer.disconnect();
 
     res
