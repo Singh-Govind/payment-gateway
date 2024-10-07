@@ -9,8 +9,8 @@ require("dotenv").config();
 // app configs
 const app = express();
 
-const USER_SERVICE_URL = "http://user-service:5000";
-const DASHBOARD_SERVICE = "http://dashboard-service:5001";
+const USER_SERVICE_URL = "http://localhost:5000";
+const DASHBOARD_SERVICE = "http://localhost:5001";
 
 // k8s
 // const USER_SERVICE_URL = process.env.USER_SERVICE_URL;
