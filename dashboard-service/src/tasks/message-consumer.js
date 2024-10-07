@@ -7,8 +7,8 @@ async function makeMerchant() {
 
   await consumer.run({
     eachMessage: async ({ message }) => {
-      //   console.log(`Received message: ${message.value}`);
-      merchantMaker(message.value);
+    //   console.log(`Received message: ${message.value}`);
+      merchantMaker(message.value.toString());
     },
   });
 }

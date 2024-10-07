@@ -4,13 +4,32 @@ const {
   STATUS_INTERNAL_SERVER_ERROR,
 } = require("../../constants/status-codes");
 
-const merchantIdGenerator = (name) => {
-  const number = Math.floor(Math.random() * 999999);
+const { createLogger, format, transports } = require("winston");
+const { combine, timestamp, printf, colorize } = format;
 
-  return (name.split("").slice(0, 5).join("").trim() + "_" + number).toUpperCase();
-};
+const customFormat = printf(({ level, message, timestamp }) => {
+  return `${timestamp} ${level}: ${message}`;
+});
 
-const merchantMaker = async (user) => {
+const logger = createLogger({
+  level: "info",
+  format: combine(colorize(), timestamp(), customFormat),
+  transports: [
+    new transports.Console(),
+    new transports.File({
+      filename: "logs/message-consumer.log",
+      level: "error",
+    }),
+  ],
+});
+
+// helper functions
+function merchantIdGenerator() {
+  let str = "MERCH_";
+  return str + Math.floor(Math.random() * 99999);
+}
+
+const merchantMaker = async (userId) => {
   try {
     let count = 0;
     let merchantId = undefined;
@@ -23,11 +42,10 @@ const merchantMaker = async (user) => {
         throw error;
       }
 
-      merchantId = merchantIdGenerator(user.firstName);
+      merchantId = merchantIdGenerator();
+      const mer = await MerchantDetails.findOne({ where: { merchantId } });
 
-      let merchant = await MerchantDetails.findOne({ where: { merchantId } });
-
-      if (!merchant) {
+      if (!mer) {
         break;
       }
 
@@ -42,13 +60,13 @@ const merchantMaker = async (user) => {
     }
 
     await MerchantDetails.create({
-      userId: user.userId,
+      userId: userId,
       merchantId,
       isActive: false,
       kyc: false,
     });
-
   } catch (e) {
+    logger.error(`Message: ${e.message}\n Stack: ${e.stack}\n`);
     console.log("somthing went wrong", e.message);
   }
 };

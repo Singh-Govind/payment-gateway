@@ -14,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
   MerchantDetails.init(
     {
       userId: { type: DataTypes.STRING, allowNull: false, unique: true },
-      MerchantId: { type: DataTypes.STRING, allowNull: false, unique: true },
+      merchantId: { type: DataTypes.STRING, allowNull: false, unique: true },
       isActive: {
         type: DataTypes.BOOLEAN,
         allowNull: false,

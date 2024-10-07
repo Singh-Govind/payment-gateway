@@ -19,16 +19,37 @@ const registerMerchant = async (req, res, next) => {
       throw error;
     }
 
+    const merchant = await MerchantDetails.findOne({ where: { userId } });
+
+    if (!merchant) {
+      // TODO: something needs to be done
+    }
+
+    await MerchantDetails.update(
+      {
+        isActive: true,
+        kyc: true,
+      },
+      {
+        where: {
+          merchantId: merchant.merchantId,
+        },
+      }
+    );
+
     // TODO: send message to user-service to make user merchant
     await producer.connect();
     await producer.send({
       topic: "merchant_request_accepted",
-      messages: [{ value: req.user }],
+      messages: [
+        { value: JSON.stringify({ userId, merchantId: merchant.merchantId }) },
+      ],
     });
     await producer.disconnect();
 
     res.status(STATUS_OK).json({
-      msg: "requested to make user merchant!",
+      msg: "merchant registered!",
+      merchant,
       status: STATUS_OK,
     });
   } catch (e) {
@@ -39,15 +60,18 @@ const registerMerchant = async (req, res, next) => {
 const getMerchantRequest = async (req, res, next) => {
   try {
     const merchantsRequests = await MerchantDetails.findAll({
-      where: { isActive: false },
+      where: {
+        isActive: false,
+      },
     });
 
     res.status(STATUS_OK).json({
-      msg: "requested to make user merchant!",
+      msg: "merchant requests!",
       merchantsRequests,
       status: STATUS_OK,
     });
   } catch (e) {
+    return res.status(500).json({ err: e.message });
     next(e);
   }
 };
